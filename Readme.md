@@ -1,7 +1,8 @@
-# Jade - template engine
+# CoffeeScript Jade - template engine
 
- Jade is a high performance template engine heavily influenced by [Haml](http://haml-lang.com)
- and implemented with JavaScript for [node](http://nodejs.org).
+ CoffeeScript Jade is a high performance template engine heavily influenced by [Haml](http://haml-lang.com)
+ and implemented with JavaScript for [node](http://nodejs.org) but produces and use CoffeeScript for
+ handling the logic.
 
 ## Features
 
@@ -21,7 +22,6 @@
   - parse tree manipulation via _filters_
   - template inheritance
   - supports [Express JS](http://expressjs.com) out of the box
-  - transparent iteration over objects, arrays, and even non-enumerables via `each`
   - block comments
   - no tag prefix
   - AST filters
@@ -30,7 +30,6 @@
     - :less must have [less.js](http://github.com/cloudhead/less.js) installed
     - :markdown must have [markdown-js](http://github.com/evilstreak/markdown-js) installed or [node-discount](http://github.com/visionmedia/node-discount)
     - :cdata
-    - :coffeescript must have [coffee-script](http://jashkenas.github.com/coffee-script/) installed
   - [Vim Syntax](https://github.com/digitaltoad/vim-jade)
   - [TextMate Bundle](http://github.com/miksago/jade-tmbundle)
   - [Screencasts](http://tjholowaychuk.com/post/1004255394/jade-screencast-template-engine-for-nodejs)
@@ -46,25 +45,25 @@
 
 via npm:
 
-    npm install jade
+    npm install coffee-jade
 
 ## Browser Support
 
  To compile jade to a single file compatible for client-side use simply execute:
  
-    $ make jade.js
+    $ make coffee-jade.js
 
  Alternatively, if uglifyjs is installed via npm (`npm install uglify-js`) you may execute the following which will create both files. However each release builds these for you.
  
-    $ make jade.min.js
+    $ make coffee-jade.min.js
 
-  By default Jade instruments templates with line number statements such as `__.lineno = 3` for debugging purposes. When used in a browser it's useful to minimize this boiler plate, you can do so by passing the option `{ compileDebug: false }`. The following template
+  By default CoffeeScript Jade instruments templates with line number statements for debugging purposes. When used in a browser it's useful to minimize this boiler plate, you can do so by passing the option `{ compileDebug: false }`. The following template
   
     p Hello #{name}
 
  Can then be as small as the following generated function:
 
-```js
+```cofee-script
 function anonymous(locals, attrs, escape, rethrow) {
   var buf = [];
   with (locals || {}) {

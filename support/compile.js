@@ -101,9 +101,9 @@ function compile() {
     buf += js;
     buf += '\n}); // module: ' + file + '\n';
   });
-  fs.writeFile('jade.js', buf, function(err){
+  fs.writeFile('coffee-jade.js', buf, function(err){
     if (err) throw err;
-    console.log('  \033[90m create : \033[0m\033[36m%s\033[0m', 'jade.js');
+    console.log('  \033[90m create : \033[0m\033[36m%s\033[0m', 'cofee-jade.js');
     console.log();
   });
 }

@@ -1,18 +1,18 @@
 {
-  "name": "jade",
-  "description": "Jade template engine",
-  "version": "0.15.4",
-  "author": "TJ Holowaychuk <tj@vision-media.ca>",
-  "repository": "git://github.com/visionmedia/jade",
+  "name": "coffee-jade",
+  "description": "The CoffeeScript Jade template engine",
+  "version": "1.0.0",
+  "author": "FuseSource <http://fusesource.com>",
+  "repository": "git://github.com/chirino/jade.git",
   "main": "./index.js",
-  "bin": { "jade": "./bin/jade" },
+  "bin": { "coffee-jade": "./bin/coffee-jade" },
   "dependencies": {
     "commander": "0.1.0",
     "mkdirp": "0.0.6"
   },
   "devDependencies": {
     "expresso": "0.6.4",
-    "coffee-script": ">= 0.0.1",
+    "coffee-script": ">= 1.1.2",
     "sass": ">= 0.0.1",
     "less": ">= 0.0.1",
     "markdown": ">= 0.0.1",

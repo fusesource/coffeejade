@@ -3,7 +3,7 @@ TESTS = test/*.js
 SRC = $(shell find lib -name "*.js" -type f)
 UGLIFY_FLAGS = --no-mangle 
 
-all: jade.min.js runtime.min.js
+all: coffee-jade.min.js coffee-jade-runtime.min.js
 
 test:
 	@./node_modules/.bin/expresso \
@@ -13,26 +13,26 @@ test:
 benchmark:
 	@node support/benchmark
 
-jade.js: $(SRC)
+coffee-jade.js: $(SRC)
 	@node support/compile.js $^
 
-jade.min.js: jade.js
+coffee-jade.min.js: coffee-jade.js
 	@uglifyjs $(UGLIFY_FLAGS) $< > $@ \
-		&& du jade.min.js \
-		&& du jade.js
+		&& du coffee-jade.min.js \
+		&& du coffee-jade.js
 
-runtime.js: lib/runtime.js
+coffee-jade-runtime.js: lib/runtime.js
 	@cat support/head.js $< support/foot.js > $@
 
-runtime.min.js: runtime.js
+coffee-jade-runtime.min.js: coffee-jade-runtime.js
 	@uglifyjs $(UGLIFY_FLAGS) $< > $@ \
-	  && du runtime.min.js \
-	  && du runtime.js
+	  && du coffee-jade-runtime.min.js \
+	  && du coffee-jade-runtime.js
 
 clean:
-	rm -f jade.js
-	rm -f jade.min.js
-	rm -f runtime.js
-	rm -f runtime.min.js
+	rm -f coffee-jade.js
+	rm -f coffee-jade.min.js
+	rm -f coffee-jade-runtime.js
+	rm -f coffee-jade-runtime.min.js
 
 .PHONY: test benchmark clean
