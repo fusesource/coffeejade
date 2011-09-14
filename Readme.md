@@ -64,19 +64,19 @@ one of those in your HTML file along with the coffee-script compiler javascript
 file.  Example:
 
 ```html
-    <script src="coffee-script.js"></script>
-    <script src="coffeejade.js"></script>
+<script src="coffee-script.js"></script>
+<script src="coffeejade.js"></script>
 ```
 
 Then you can compile and render templates like the following example
 shows:
 
 ```html
-    <script type="text/javascript"> 
-      var jade = require("jade.js");
-      var template = jade.template('h1= "Hello #{name}"');
-      alert(template({name: 'Hiram'}));
-    </script>
+<script type="text/javascript"> 
+  var jade = require("jade.js");
+  var template = jade.template('h1= "Hello #{name}"');
+  alert(template({name: 'Hiram'}));
+</script>
 ```
 
 ### Precompiled Templates
@@ -88,8 +88,8 @@ are then loaded on the browser.  In this case you only need to load the
 Lets say you have a Jade file called `example.jade` with the following 
 contents:
 
-```jade
-    h1= "Hello #{name}
+```
+h1= "Hello #{name}
 ```
 
 You would precompile it using the following command:
@@ -100,27 +100,27 @@ The above will generate an `example.js` file in the same directory. You then
 loaded it into your browser as follows:
 
 ```html
-    <script src="coffeejade-runtime.js"></script>
-    <script src="example.js"></script>
+<script src="coffeejade-runtime.js"></script>
+<script src="example.js"></script>
 ```
 
 And then access and render the template using:
 
 ```html
-    <script type="text/javascript"> 
-      var template = jade.templates["example.jade"];
-      alert(template({name: 'Hiram'}));
-    </script>
+<script type="text/javascript"> 
+  var template = jade.templates["example.jade"];
+  alert(template({name: 'Hiram'}));
+</script>
 ```
 
 ## Public API
 
 ```javascript
-    var jade = require('jade');
+var jade = require('jade');
 
-    // Compile a function
-    var fn = jade.template('string of jade', options);
-    fn(locals);
+// Compile a function
+var fn = jade.template('string of jade', options);
+fn(locals);
 ```
 
 ### Options
@@ -644,6 +644,7 @@ jade.templates['example.jade'] = function(locals) {
 You can also `coffeejade` generate CoffeeScript instead of java script by adding
 the `-c` argument.  It would then produce a `.coffee` file with the following:
 
+```coffee
 jade.templates['example.jade'] =
   (locals) ->
     __ = jade.init()
@@ -654,6 +655,7 @@ jade.templates['example.jade'] =
     __.buf.push('>' + __.escape(title) + '</h1><p>Just an example</p>')
     `}`
     __.buf.join("")
+```
 
 If you want to use the template as an Asynchronous Module Definition (AMD),
 then then add the `-a file.js` option.  It will wrap the templates
