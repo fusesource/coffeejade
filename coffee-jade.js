@@ -99,7 +99,6 @@ var Compiler = module.exports = function Compiler(node, options) {
   this.hasCompiledDoctype = false;
   this.hasCompiledTag = false;
   this.pp = options.pretty || false;
-  this.debug = false !== options.debug;
   this.indents = 0;
   if (options.doctype) this.setDoctype(options.doctype);
 };
@@ -119,6 +118,7 @@ Compiler.prototype = {
   compile: function(){
     this.buf = [];
     this.indent = 0;
+    this.smap = [];
 
     this.indented = function(value) {
       var b = ""
@@ -126,11 +126,17 @@ Compiler.prototype = {
         b += "  "
       }
       return b + value;
-    }
+    };
+    
+    this.track_source = function(file, line, target_line) {
+      file = file ? file : (this.smap.length > 0 ? this.smap[0].file : null);
+      target_line = target_line ? target_line : this.buf.length+1
+      this.smap.push({sf:file, sl:line, l:target_line});
+    };
     
     this.p = function(value) {
       this.buf.push(this.indented(value))
-    }
+    };
     
     this.block = function(next) {
       this.indent += 1;
@@ -139,10 +145,24 @@ Compiler.prototype = {
       } finally {
         this.indent -= 1;
       }
-    }
+    };
+    
     this.lastBufferedIdx = -1
-    this.visit(this.node);
-    return this.buf.join('\n');
+    this.p('(locals) ->')
+    compiler = this;
+    this.block(function(){
+      compiler.p('__ = jade.init()')
+      if(compiler.options.self) {
+        compiler.p('self = locals || {}')
+        compiler.visit(this.node);
+      } else {
+        compiler.p('`with (locals || {}) {`')
+        compiler.visit(compiler.node);
+        compiler.p('`}`')
+      }
+      compiler.p('__.buf.join("")')
+    });
+    return {code:this.buf.join('\n'), smap:this.smap};
   },
 
   /**
@@ -191,14 +211,8 @@ Compiler.prototype = {
    */
   
   visit: function(node){
-    if (this.debug)  this.p('__.stack.unshift({ line: ' + node.line
-        + ', file: ' + (node.filename
-          ? '"' + node.filename + '"'
-          : '__.stack[0].file')
-        + ' });');
-        
+    this.track_source(node.filename, node.line)
     this.visitNode(node);
-    if (this.debug) this.p('__.stack.shift()');
   },
   
   /**
@@ -271,9 +285,11 @@ Compiler.prototype = {
       , args = mixin.args || '';
 
     if (mixin.block) {
-      this.p(name + ' = (' + args + ')-> {');
-      this.visit(mixin.block);
-      this.p('}');
+      this.p(name + ' = (' + args + ')->');
+      compiler = this;
+      compiler.block(function(){
+        compiler.visit(mixin.block);
+      });
     } else {
       this.p(name + '(' + args + ')');
     }
@@ -493,12 +509,12 @@ Compiler.prototype = {
 
     if (classes.length) {
       classes = classes.join(" + ' ' + ");
-      buf.push("class: " + classes);
+      buf.push("'class': " + classes);
     }
+    
+    buf = buf.join(', ');
 
-    buf = buf.join(', ').replace('class:', "'class':");
-
-    this.p("__.buf.push(attrs({ " + buf + " }));");
+    this.p("__.buf.push(__.attrs({ " + buf + " }));");
   }
 };
 
@@ -686,8 +702,7 @@ var Parser = require('./parser')
 /**
  * Library version.
  */
-
-exports.version = '0.15.4';
+exports.version = '1.0.0';
 
 /**
  * Expose self closing tags.
@@ -737,159 +752,50 @@ exports.nodes = require('./nodes');
 
 exports.runtime = runtime;
 
-/**
- * Template function cache.
- */
+exports.compile = function(str, options){
+  var options = options || {}
+  var filename = options.filename ? JSON.stringify(options.filename) : 'undefined'
+  var fn;
 
-exports.cache = {};
-
-/**
- * Parse the given `str` of jade and return a function body.
- *
- * @param {String} str
- * @param {Object} options
- * @return {String}
- * @api private
- */
-
-function parse(str, options){
   try {
     // Parse
     var parser = new Parser(str, options.filename, options);
 
     // Compile
     var compiler = new (options.compiler || Compiler)(parser.parse(), options)
-      , js = compiler.compile();
+    var result = compiler.compile();
 
     // Debug compiler
     if (options.debug) {
-      console.error('\nCompiled Function:\n\n\033[90m%s\033[0m', js.replace(/^/gm, '  '));
+      console.error('\nGenerated CoffeeScript:\n\n\033[90m%s\033[0m', result.code.replace(/^/gm, '  '));
     }
-
-    return ''
-      + (options.self
-        ? 'self = locals || {}\n' + js
-        : '`with (locals || {}) {`\n' + js + '\n`}`\n')
-      + '__.buf.join("")';
+    
+    return result;
   } catch (err) {
     parser = parser.context();
     runtime.rethrow(err, parser.filename, parser.lexer.lineno);
   }
-}
-var block = function(value) {
-  return "  "+value.split("\n").join("\n  ");
-}
-  
-exports.parse = function(str, options){
-  var options = options || {}
-    , filename = options.filename
-      ? JSON.stringify(options.filename)
-      : 'undefined'
-    , fn;
 
-  if (options.debug !== false) {
-    fn = [
-        '__.stack = [{ lineno: 1, filename: ' + filename + ' }]'
-      , 'try'
-      , block(parse(String(str), options || {}))
-      , 'catch err'
-      , block('__.rethrow err, __.stack[0].file, __.stack[0].line')
-    ].join('\n');
-  } else {
-    fn = parse(String(str), options || {});
-  }
-
-  return '(locals) ->\n'+
-    block(
-      '__ = jade.init()\n'+
-      fn
-    );
 };
 
 /**
- * Compile a `Function` representation of the given jade `str`.
- *
- * Options:
- * 
- *   - `debug` when `false` debugging code is stripped from the compiled template
- *   - `client` when `true` the helper functions `escape()` etc will reference `jade.escape()`
- *      for use with the Jade client-side runtime.js
- *
- * @param {String} str
- * @param {Options} options
- * @return {Function}
- * @api public
  */
-
-exports.compile = function(str, options){
-  var options = options || {}
-    , client = options.client
-    , filename = options.filename
-      ? JSON.stringify(options.filename)
-      : 'undefined'
-    , fn;
-
-  if (options.debug !== false) {
-    fn = [
-        'var __ = [{ lineno: 1, filename: ' + filename + ' }];'
-      , 'try {'
-      , parse(String(str), options || {})
-      , '} catch (err) {'
-      , '  rethrow(err, __[0].filename, __[0].lineno);'
-      , '}'
-    ].join('\n');
-  } else {
-    fn = parse(String(str), options || {});
+exports.compile_to_js = function(str, options){
+  var coffee = require('coffee-script');
+  var fn = exports.compile(str, options).code
+  fn = coffee.compile(fn, {bare:true, filename:options.filename})
+  if (options.debug) {
+    console.error('\nGenerated JavaScript:\n\n\033[90m%s\033[0m', fn.replace(/^/gm, '  '));
   }
+  return fn;
+};
 
-  if (client) {
-    fn = 'var attrs = jade.attrs, escape = jade.escape, rethrow = jade.rethrow;\n' + fn;
-  }
-
-  fn = new Function('locals, attrs, escape, rethrow', fn);
-
-  if (client) return fn;
-
+exports.template = function(str, options){
+  var fn = exports.compile_to_js(str, options)
+  fn = new Function('locals, jade', "var fn="+fn+"; return fn(locals);");
   return function(locals){
-    return fn(locals, runtime.attrs, runtime.escape, runtime.rethrow);
+    return fn(locals, runtime);
   };
-};
-
-/**
- * Render the given `str` of jade and invoke
- * the callback `fn(err, str)`.
- *
- * Options:
- *
- *   - `cache` enable template caching
- *   - `filename` filename required for `include` / `extends` and caching
- *
- * @param {String} str
- * @param {Object|Function} options or fn
- * @param {Function} fn
- * @api public
- */
-
-exports.render = function(str, options, fn){
-  // swap args
-  if ('function' == typeof options) {
-    fn = options, options = {};
-  }
-
-  // cache requires .filename
-  if (options.cache && !options.filename) {
-    return fn(new Error('the "filename" option is required for caching'));
-  }
-
-  try {
-    var path = options.filename;
-    var tmpl = options.cache
-      ? exports.cache[path] || (exports.cache[path] = exports.compile(str, options))
-      : exports.compile(str, options);
-    fn(null, tmpl(options));
-  } catch (err) {
-    fn(err);
-  }
 };
 }); // module: jade.js
 
