@@ -1,4 +1,4 @@
-
+(function(){
 // CommonJS require()
 
 function require(p){
@@ -2703,3 +2703,6 @@ exports.text = function(str){
   return interpolate(escape(str));
 };
 }); // module: utils.js
+
+window.jade = require("jade.js");
+})(this);

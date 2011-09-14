@@ -8,7 +8,6 @@
     
     <script type="text/coffeescript"> 
     $ ->
-      jade = require("jade.js")
       template = jade.template($("#example").html())
       $("#example").remove();
       $("body").html(template({}))

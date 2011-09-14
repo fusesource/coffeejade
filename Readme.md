@@ -73,7 +73,6 @@ shows:
 
 ```html
 <script type="text/javascript"> 
-  var jade = require("jade.js");
   var template = jade.template('h1= "Hello #{name}"');
   alert(template({name: 'Hiram'}));
 </script>
