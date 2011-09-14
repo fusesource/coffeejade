@@ -3,7 +3,8 @@
   "description": "The CoffeeScript Jade template engine",
   "version": "1.0.0",
   "author": "FuseSource <http://fusesource.com>",
-  "repository": "git://github.com/chirino/jade.git",
+  "repository": "git://github.com/fusesource/coffeejade.git",
+  "homepage":   "http://github.com/fusesource/coffeejade",
   "main": "./index.js",
   "bin": { "coffeejade": "./bin/coffeejade" },
   "dependencies": {
@@ -19,6 +20,10 @@
     "stylus": ">= 0.0.1",
     "uubench": "0.0.1"
   },
+  "licenses":     [{
+    "type":       "MIT",
+    "url":        "https://raw.github.com/fusesource/coffeejade/master/LICENSE"
+  }],
   "scripts" : { "prepublish" : "npm prune" },
-  "engines": { "node": ">= 0.1.98" }
+  "engines":  { "node":       ">=0.2.5" }
 }

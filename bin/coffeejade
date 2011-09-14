@@ -91,7 +91,7 @@ if (files.length) {
       console.error('\nGenerated AMD CoffeeScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
     }
     
-    source = coffee_compile(coffee)
+    source = coffee_compile(source)
     
     fs.writeFile(program.amdout, source, function(err){
       if (err) throw err;
