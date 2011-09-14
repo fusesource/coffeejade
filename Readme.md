@@ -1,8 +1,12 @@
 # CoffeeScript Jade - template engine
 
- CoffeeScript Jade is a high performance template engine heavily influenced by [Haml](http://haml-lang.com)
- and implemented with JavaScript for [node](http://nodejs.org) but produces and use CoffeeScript for
- handling the logic.
+ CoffeeScript Jade is a fork of [JavaScript Jade](https://github.com/visionmedia/jade)
+ which uses CoffeeScript for the embedded logic instead of JavaScript.  It's command line tool
+ also focuses generating CoffeeScript/JavaScript from the `.jade` files which you can
+ later load in you application without needing the compiler.
+ 
+ Jade is high performance template engine heavily influenced by [Haml](http://haml-lang.com)
+ and implemented with JavaScript for [node](http://nodejs.org).
 
 ## Features
 
@@ -15,7 +19,7 @@
   - attribute interpolation
   - code is escaped by default for security
   - contextual error reporting at compile &amp; run time
-  - executable for compiling jade templates via the command line
+  - executable for compiling jade templates to javascript via the command line
   - html 5 mode (using the _!!! 5_ doctype)
   - optional memory caching
   - combine dynamic and static tag classes
@@ -49,44 +53,64 @@ via npm:
 
 ## Browser Support
 
- To compile jade to a single file compatible for client-side use simply execute:
- 
-    $ make coffeejade.js
+To compile jade to a single file compatible for client-side use simply execute:
 
- Alternatively, if uglifyjs is installed via npm (`npm install uglify-js`) you may execute the following which will create both files. However each release builds these for you.
- 
-    $ make coffeejade.min.js
+   $ make all
 
-  By default CoffeeScript Jade instruments templates with line number statements for debugging purposes. When used in a browser it's useful to minimize this boiler plate, you can do so by passing the option `{ compileDebug: false }`. The following template
-  
-    p Hello #{name}
+### Client Side Template Compiling
 
- Can then be as small as the following generated function:
+The above generates the `coffeejade.js` and `coffeejade.min.js`.  Just include
+one of those in your HTML file along with the coffee-script compiler javascript
+file.  Example:
 
-```cofee-script
-function anonymous(locals, attrs, escape, rethrow) {
-  var buf = [];
-  with (locals || {}) {
-    var interp;
-    buf.push('\n<p>Hello ' + escape((interp = name) == null ? '' : interp) + '\n</p>');
-  }
-  return buf.join("");
-}
+```html
+    <script src="coffee-script.js"></script>
+    <script src="coffeejade.js"></script>
 ```
 
-  Through the use of Jade's `./runtime.js` you may utilize these pre-compiled templates on the client-side _without_ Jade itself, all you need is the associated utility functions (in runtime.js), which are then available as `jade.attrs`, `jade.escape` etc. To enable this you should pass `{ client: true }` to `jade.compile()` to tell Jade to reference the helper functions
-  via `jade.attrs`, `jade.escape` etc.
+Then you can compile and render templates like the following example
+shows:
 
-```js
-function anonymous(locals, attrs, escape, rethrow) {
-  var attrs = jade.attrs, escape = jade.escape, rethrow = jade.rethrow;
-  var buf = [];
-  with (locals || {}) {
-    var interp;
-    buf.push('\n<p>Hello ' + escape((interp = name) == null ? '' : interp) + '\n</p>');
-  }
-  return buf.join("");
-}
+```html
+    <script type="text/javascript"> 
+      var jade = require("jade.js");
+      var template = jade.template('h1= "Hello #{name}"');
+      alert(template({name: 'Hiram'}));
+    </script>
+```
+
+### Precompiled Templates
+
+You can also precompile the `.jade` templates into java script files which 
+are then loaded on the browser.  In this case you only need to load the 
+`coffeejade-runtime.js` file into your browser.
+
+Lets say you have a Jade file called `example.jade` with the following 
+contents:
+
+```jade
+    h1= "Hello #{name}
+```
+
+You would precompile it using the following command:
+
+    coffeejade example.jade
+
+The above will generate an `example.js` file in the same directory. You then
+loaded it into your browser as follows:
+
+```html
+    <script src="coffeejade-runtime.js"></script>
+    <script src="example.js"></script>
+```
+
+And then access and render the template using:
+
+```html
+    <script type="text/javascript"> 
+      var template = jade.templates["example.jade"];
+      alert(template({name: 'Hiram'}));
+    </script>
 ```
 
 ## Public API
@@ -181,7 +205,7 @@ now we have `<p>#{something}</p>`
 We can also utilize the unescaped variant `!{html}`, so the following
 will result in a literal script tag:
 
-    - var html = "<script></script>"
+    - html = "<script></script>"
     | !{html}
 
 Nested tags that also contain text can optionally use a text block:
@@ -207,34 +231,6 @@ need the leading `|` character, for example:
             } else {
               baz();
             }
-
-Once again as an alternative, we may use a trailing '.' to indicate a text block, for example:
-
-      p.
-        foo asdf
-        asdf
-         asdfasdfaf
-         asdf
-        asd.
-
-outputs:
-
-        <p>foo asdf
-        asdf
-          asdfasdfaf
-          asdf
-        asd
-        .
-        </p>
-
-This however differs from a trailing '.' followed by a space, which although is ignored by the Jade parser, tells Jade that this period is a literal:
-
-    p .
-    
-outputs:
-
-    <p>.</p>
-
 
 It should be noted that text blocks should be doubled escaped.  For example if you desire the following output.
 
@@ -341,16 +337,16 @@ so this is fine, it will not compile 'something="null"'.
 
 Boolean attributes are also supported:
 
-    input(type="checkbox", checked)
+    input(type="checkbox" checked)
 
 Boolean attributes with code will only output the attribute when `true`:
 
-    input(type="checkbox", checked=someValue)
+    input(type="checkbox" checked=someValue)
     
 Multiple lines work too:
 
-    input(type='checkbox',
-      name='agreement',
+    input(type='checkbox'
+      name='agreement'
       checked)
 
 Multiple lines without the comma work fine:
@@ -487,32 +483,20 @@ Renders:
 
        <body><p>Woah! jade <em>and</em> markdown, very <strong>cool</strong> we can even link to <a href="http://google.com">stuff</a></p></body>
 
-Filters may also manipulate the parse tree. For example perhaps I want to
-bake conditionals right into jade, we could do so with a filter named _conditionals_. Typically filters work on text blocks, however by passing a regular block our filter can do anything it wants with the tags nested within it.
-
-    body
-      conditionals:
-        if role == 'admin'
-          p You are amazing
-        else
-          p Not so amazing
-
-Not that we no longer prefix with "-" for these code blocks. Examples of 
-how to manipulate the parse tree can be found at _./examples/conditionals.js_ and _./examples/model.js_, basically we subclass and re-implement visitor methods as needed. There are several interesting use-cases for this functionality above what was shown above such as transparently aggregating / compressing assets to reduce the number of HTTP requests, transparent record error reporting, and more.
-
 ## Code
 
 Jade currently supports three classifications of executable code. The first
-is prefixed by `-`, and is not buffered:
+is prefixed by `-`, and is not rendered.  All executable code but 
+be valid CoffeeScript:
 
-    - var foo = 'bar';
+    - foo = 'bar'
 
 This can be used for conditionals, or iteration:
 
-    - for (var key in obj)
-      p= obj[key]
+    - for key,value of obj
+      p(id=key)= value
 
-Due to Jade's buffering techniques the following is valid as well:
+The following is valid as well:
 
     - if (foo)
       ul
@@ -526,107 +510,23 @@ Hell, even verbose iteration:
 
     - if (items.length)
       ul
-        - items.forEach(function(item){
+        - for item in items
           li= item
-        - })
 
 Anything you want!
 
-Next up we have _escaped_ buffered code, which is used to
-buffer a return value, which is prefixed by `=`:
+Next up we have _escaped_ code, which is used to
+return value, which is prefixed by `=`:
 
-    - var foo = 'bar'
+    - foo = 'bar'
     = foo
     h1= foo
 
-Which outputs `bar<h1>bar</h1>`. Code buffered by `=` is escaped 
+Which outputs `bar<h1>bar</h1>`. Code rendered by `=` is escaped 
 by default for security, however to output unescaped return values
 you may use `!=`:
 
     p!= aVarContainingMoreHTML
-
-## Iteration
-
- Along with vanilla JavaScript Jade also supports a subset of
- constructs that allow you to create more designer-friendly templates,
- one of these constructs is `each`, taking the form:
-
-    each VAL[, KEY] in OBJ
-
-An example iterating over an array:
-
-    - var items = ["one", "two", "three"]
-    each item in items
-      li= item
-
-outputs:
-
-    <li>one</li>
-    <li>two</li>
-    <li>three</li>
-
-iterating an array with index:
-
-    - var items = ["one", "two", "three"]
-    each item, i in items
-      li #{item}: #{i}
-
-outputs:
-
-    <li>one: 0</li>
-    <li>two: 1</li>
-    <li>three: 2</li>
-
-iterating an object's keys and values:
-
-    - var obj = { foo: 'bar' }
-    each val, key in obj
-      li #{key}: #{val}
-
-would output `<li>foo: bar</li>`
-
-Internally Jade converts these statements to regular
-JavaScript loops such as `users.forEach(function(user){`,
-so lexical scope and nesting applies as it would with regular
-JavaScript:
-
-    each user in users
-      each role in user.roles
-        li= role
-
- You may also use `for` if you prefer:
- 
-    for user in users
-      for role in user.roles
-        li= role
-
-## Conditionals
-
- Jade conditionals are equivalent to those using the code (`-`) prefix,
- however allow you to ditch parenthesis to become more designer friendly,
- however keep in mind the expression given is _regular_ JavaScript:
-
-    for user in users
-      if user.role == 'admin'
-        p #{user.name} is an admin
-      else
-        p= user.name
-
- is equivalent to the following using vanilla JavaScript literals:
-
-     for user in users
-       - if (user.role == 'admin')
-         p #{user.name} is an admin
-       - else
-         p= user.name
-
-  Jade also provides have `unless` which is equivalent to `if (!(expr))`:
-
-     for user in users
-       unless user.isAnonymous
-         p
-           | Click to view
-           a(href='/users/' + user.id)= user.name 
 
 ## Includes
 
@@ -672,7 +572,7 @@ which should be an absolute path to this file, however Express does this for you
 
 ## Mixins
 
- Mixins are converted to regular JavaScript functions in
+ Mixins are converted to regular functions in
  the compiled template that Jade constructs. Mixins may
  take arguments, though not required:
 
@@ -718,126 +618,72 @@ which should be an absolute path to this file, however Express does this for you
 
  Suppose we have the following Jade:
 
-```
-- var title = 'yay'
+```jade
+- title = 'yay'
 h1.title #{title}
 p Just an example
 ```
-
- When the `compileDebug` option is not explicitly `false`, Jade
- will compile the function instrumented with `__.lineno = n;`, which
- in the event of an exception is passed to `rethrow()` which constructs
- a useful message relative to the initial Jade input.
+When compiled with `coffeejade` it will produce java script similar to:
 
 ```js
-function anonymous(locals) {
-  var __ = { lineno: 1, input: "- var title = 'yay'\nh1.title #{title}\np Just an example", filename: "testing/test.js" };
-  var rethrow = jade.rethrow;
-  try {
-    var attrs = jade.attrs, escape = jade.escape;
-    var buf = [];
-    with (locals || {}) {
-      var interp;
-      __.lineno = 1;
-       var title = 'yay'
-      __.lineno = 2;
-      buf.push('<h1');
-      buf.push(attrs({ "class": ('title') }));
-      buf.push('>');
-      buf.push('' + escape((interp = title) == null ? '' : interp) + '');
-      buf.push('</h1>');
-      __.lineno = 3;
-      buf.push('<p>');
-      buf.push('Just an example');
-      buf.push('</p>');
-    }
-    return buf.join("");
-  } catch (err) {
-    rethrow(err, __.input, __.filename, __.lineno);
-  }
-}
+jade.templates['example.jade'] = function(locals) {
+  var title, __;
+  __ = jade.init();
+  with (locals || {}) {;
+  title = 'yay';
+  __.buf.push('<h1');
+  __.buf.push(__.attrs({
+    'class': 'title'
+  }));
+  __.buf.push('>' + __.escape(title) + '</h1><p>Just an example</p>');
+  };
+  return __.buf.join("");
+};
 ```
 
-When the `compileDebug` option _is_ explicitly `false`, this instrumentation
-is stripped, which is very helpful for light-weight client-side templates. Combining Jade's options with the `./runtime.js` file in this repo allows you
-to toString() compiled templates and avoid running the entire Jade library on
-the client, increasing performance, and decreasing the amount of JavaScript
-required.
+You can also `coffeejade` generate CoffeeScript instead of java script by adding
+the `-c` argument.  It would then produce a `.coffee` file with the following:
 
-```js
-function anonymous(locals) {
-  var attrs = jade.attrs, escape = jade.escape;
-  var buf = [];
-  with (locals || {}) {
-    var interp;
-    var title = 'yay'
-    buf.push('<h1');
-    buf.push(attrs({ "class": ('title') }));
-    buf.push('>');
-    buf.push('' + escape((interp = title) == null ? '' : interp) + '');
-    buf.push('</h1>');
-    buf.push('<p>');
-    buf.push('Just an example');
-    buf.push('</p>');
-  }
-  return buf.join("");
-}
-```
+jade.templates['example.jade'] =
+  (locals) ->
+    __ = jade.init()
+    `with (locals || {}) {`
+    title = 'yay'
+    __.buf.push('<h1')
+    __.buf.push(__.attrs({ 'class': ('title') }));
+    __.buf.push('>' + __.escape(title) + '</h1><p>Just an example</p>')
+    `}`
+    __.buf.join("")
 
-## Example Makefile
+If you want to use the template as an Asynchronous Module Definition (AMD),
+then then add the `-a file.js` option.  It will wrap the templates
+in a module definition.
 
-  Below is an example Makefile used to compile _pages/*.jade_
-  into _pages/*.html_ files by simply executing `make`.
- 
-```make
-JADE = $(shell find pages/*.jade)
-HTML = $(JADE:.jade=.html)
-
-all: $(HTML)
-	
-%.html: %.jade
-	jade < $< > $@
-
-clean:
-	rm -f $(HTML)
-
-.PHONY: clean
-```
-
-this can be combined with the `watch(1)` command to produce
-a watcher-like behaviour:
-
-     $ watch make
-
-## jade(1)
+## coffeejade(1)
 
 ```
 
-Usage: jade [options] [dir|file ...]
+  Usage: coffeejade [options] file.jade target.
 
-Options:
+  Options:
 
-  -h, --help       output usage information
-  -v, --version    output the version number
-  -o, --obj <str>  javascript options object
-  -O, --out <dir>  output the compiled html to <dir>
+    -h, --help                  output usage information
+    -v, --version               output the version number
+    -c, --coffee                Compile to CoffeeScript instead of JavaScript
+    -p, --pretty                Pretty print the HTML
+    -d, --doctype <type>        Sets the doctype in the generated HTML
+    -s, --self                  Use a `self` namespace to hold the locals
+    -d, --debug                 Enable debug mode
+    -a, --amdout <file>         Wrap all the templates in an Asynchronous Module Definition (AMD)
+    -r, --amdrequire <require>  Add a require to the AMD
 
-Examples:
+  Examples:
 
-  # translate jade the templates dir
-  $ jade templates
+    # translate all the jade files the templates dir
+    $ coffeejade templates
 
-  # create {foo,bar}.html
-  $ jade {foo,bar}.jade
-
-  # jade over stdio
-  $ jade < my.jade > my.html
-
-  # jade over stdio
-  $ echo "h1 Jade!" | jade
-
-  # foo, bar dirs rendering to /tmp
-  $ jade foo bar --out /tmp 
+    # Like the the previous example, but generate one javascript file.
+    $ coffeejade --amdout templates.js templates
 
 ```
 
@@ -846,6 +692,7 @@ Examples:
 (The MIT License)
 
 Copyright (c) 2009-2010 TJ Holowaychuk &lt;tj@vision-media.ca&gt;
+Copyright (c) 2011 FuseSource Corp <http://fusesource.com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
