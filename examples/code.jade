@@ -1,8 +1,9 @@
-- var title = "Things"
+- title = "Things"
 h1= title
 ul#users
-  - each user, name in users
+  -# for name, user of users
+  - for name,user of users
     - if (user.isA == "ferret")
-      li(class: 'user-' + name) #{name} is just a ferret
+      li(class='user-' + name) #{name} is just a ferret
     - else
-      li(class: 'user-' + name) #{name} #{user.email}
+      li(class='user-' + name) #{name} #{user.email}

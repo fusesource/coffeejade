@@ -924,12 +924,12 @@ module.exports = {
   },
   
   'test .compile() no debug': function(assert){
-      var fn = jade.compile('p foo\np #{bar}', {compileDebug: false});
+      var fn = jade.compile('p foo\np #{bar}', {debug: false});
       assert.equal('<p>foo</p><p>baz</p>', fn({bar: 'baz'}));
   },
   
   'test .compile() no debug and global helpers': function(assert){
-      var fn = jade.compile('p foo\np #{bar}', {compileDebug: false, helpers: 'global'});
+      var fn = jade.compile('p foo\np #{bar}', {debug: false, helpers: 'global'});
       assert.equal('<p>foo</p><p>baz</p>', fn({bar: 'baz'}));
   },
   

@@ -95,18 +95,16 @@ function anonymous(locals, attrs, escape, rethrow) {
     var jade = require('jade');
 
     // Compile a function
-    var fn = jade.compile('string of jade', options);
+    var fn = jade.template('string of jade', options);
     fn(locals);
 ```
 
 ### Options
 
  - `self`      Use a `self` namespace to hold the locals. _false by default_
- - `locals`    Local variable object
  - `filename`  Used in exceptions, and required when using includes
  - `debug`     Outputs tokens and function body generated
  - `compiler`  Compiler to replace jade's default
- - `compileDebug`  When `false` no debug instrumentation is compiled
 
 ## Syntax
 

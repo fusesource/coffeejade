@@ -22,9 +22,15 @@ var options = {};
 
 program
   .version(jade.version)
-  .usage('[options] [dir|file ...]')
-  .option('-o, --obj <str>', 'javascript options object')
-  .option('-O, --out <dir>', 'output the compiled html to <dir>')
+  .usage('[options] file.jade target.')
+  .option('-c, --coffee',   'Compile to CoffeeScript instead of JavaScript')
+  .option('-b, --bare', 'compiles the CoffeeScript without the top-level function wrapper')
+  .option('-p, --pretty', 'Pretty print the HTML')
+  .option('-d, --doctype <type>', 'Sets the doctype in the generated HTML')
+  .option('-s, --self', 'Use a `self` namespace to hold the locals')
+  .option('-d, --debug', 'Enable debug mode')
+  .option('-a, --amdout <file>', 'Wrap all the templates in an Asynchronous Module Definition (AMD)')
+  .option('-r, --amdrequire <require>', 'Add a require to the AMD')
 
 program.on('--help', function(){
   console.log('  Examples:');
@@ -43,17 +49,55 @@ program.on('--help', function(){
 program.parse(process.argv);
 
 // options given, parse them
-
-if (program.obj) options = eval('(' + program.obj + ')');
+if (program.bare) options.bare = true;
+if (program.debug) options.debug = true;
+if (program.pretty) options.pretty = true;
+if (program.doctype) options.doctype = program.doctype;
+if (program.self) options.self = true;
 
 // left-over args are file paths
 
 var files = program.args;
 
+var amd_sources = {};
 // compile files
 if (files.length) {
   console.log();
   files.forEach(renderFile);
+  if( program.amdout ) {
+    buf = [];
+    if(program.amdrequire) {
+      buf.push("define ['"+program.amdrequire+"'], ->")
+    } else {
+      buf.push("define ->")
+    }
+    buf.push("  templates = {}")
+    for(key in amd_sources) {
+      var source = amd_sources[key];
+      buf.push("  templates['"+key+"'] = (")
+      buf.push(source.replace(/^/gm, "    "))
+      buf.push("  )")
+    }
+    buf.push("  templates")
+    var source = buf.join("\n")
+    if (options.debug) {
+      console.error('\nGenerated AMD CoffeeScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
+    }
+    
+    if( !program.coffee ) {
+      var coffee = require('coffee-script');
+      source = coffee.compile(source, {bare:options.bare})
+      if (options.debug) {
+        console.error('\nGenerated AMD JavaScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
+      }
+    }
+    
+    fs.writeFile(program.amdout, source, function(err){
+      if (err) throw err;
+      console.log(' \033[90m generated \033[36m%s\033[0m', program.amdout);
+    });
+    
+  }
   process.on('exit', console.log);
 } else {
   console.error('No files specified.');
@@ -65,32 +109,38 @@ if (files.length) {
  */
 function renderFile(path) {
   var re = /\.jade$/;
-  fs.lstat(path, function(err, stat) {
-    if (err) throw err;
-    // Found jade file
-    if (stat.isFile() && re.test(path)) {
-      fs.readFile(path, 'utf8', function(err, str){
-        if (err) throw err;
-        var result = jade.parse(str, options);
-        path = path.replace(re, '.coffee');
-        if (program.out) path = join(program.out, basename(path));
-        var dir = resolve(dirname(path));
-        mkdirp(dir, 0755, function(err){
-          if (err) throw err;
-          fs.writeFile(path, result, function(err){
-            if (err) throw err;
-            console.log('  \033[90mrendered \033[36m%s\033[0m', path);
-          });
-        });
-      });
-    // Found directory
-    } else if (stat.isDirectory()) {
-      fs.readdir(path, function(err, files) {
-        if (err) throw err;
-        files.map(function(filename) {
-          return path + '/' + filename;
-        }).forEach(renderFile);
-      });
+  var stat = fs.lstatSync(path);
+  // Found jade file
+  if (stat.isFile() && re.test(path)) {
+  
+    var str = fs.readFileSync(path, 'utf8');
+
+    options.filename = path
+    var result = null;
+    var target = null;
+    
+    if( program.coffee || program.amdout ) {
+      result = jade.compile(str, options).code;
+      target = path.replace(re, '.coffee');
+    } else {
+      result = jade.compile_to_js(str, options);
+      target = path.replace(re, '.js');
     }
-  });
+    
+    if( !program.amdout ) {
+      fs.writeFile(target, result, function(err){
+        if (err) throw err;
+        console.log(' \033[90m generated \033[36m%s\033[0m', target);
+      });
+    } else {
+      amd_sources[path] = result;
+    }
+    
+  // Found directory
+  } else if (stat.isDirectory()) {
+    var files = fs.readdirSync(path);
+    files.map(function(filename) {
+      return path + '/' + filename;
+    }).forEach(renderFile);
+  }
 }

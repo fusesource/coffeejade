@@ -8,11 +8,11 @@
   "bin": { "coffee-jade": "./bin/coffee-jade" },
   "dependencies": {
     "commander": "0.1.0",
+    "coffee-script": ">= 1.1.2",
     "mkdirp": "0.0.6"
   },
   "devDependencies": {
     "expresso": "0.6.4",
-    "coffee-script": ">= 1.1.2",
     "sass": ">= 0.0.1",
     "less": ">= 0.0.1",
     "markdown": ">= 0.0.1",

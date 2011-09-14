@@ -99,7 +99,7 @@ var Compiler = module.exports = function Compiler(node, options) {
   this.hasCompiledDoctype = false;
   this.hasCompiledTag = false;
   this.pp = options.pretty || false;
-  this.debug = false !== options.compileDebug;
+  this.debug = false !== options.debug;
   this.indents = 0;
   if (options.doctype) this.setDoctype(options.doctype);
 };
@@ -787,7 +787,7 @@ exports.parse = function(str, options){
       : 'undefined'
     , fn;
 
-  if (options.compileDebug !== false) {
+  if (options.debug !== false) {
     fn = [
         '__.stack = [{ lineno: 1, filename: ' + filename + ' }]'
       , 'try'
@@ -811,7 +811,7 @@ exports.parse = function(str, options){
  *
  * Options:
  * 
- *   - `compileDebug` when `false` debugging code is stripped from the compiled template
+ *   - `debug` when `false` debugging code is stripped from the compiled template
  *   - `client` when `true` the helper functions `escape()` etc will reference `jade.escape()`
  *      for use with the Jade client-side runtime.js
  *
@@ -829,7 +829,7 @@ exports.compile = function(str, options){
       : 'undefined'
     , fn;
 
-  if (options.compileDebug !== false) {
+  if (options.debug !== false) {
     fn = [
         'var __ = [{ lineno: 1, filename: ' + filename + ' }];'
       , 'try {'
