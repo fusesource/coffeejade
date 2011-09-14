@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="../support/jquery.js"></script>
+    <script src="../coffeejade-runtime.js"></script>
+    <script src="server-compile-template.js"></script>
+    
+    <script type="text/javascript"> 
+    $(function(){
+      var template = jade.templates['server-compile-template.jade'];
+      $("body").html(template({}));
+    });
+    </script>
+  </head>
+  
+  <body>
+  </body>
+</html>

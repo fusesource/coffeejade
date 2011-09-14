@@ -91,6 +91,8 @@ exports.string = function string(html){
   return String(html);
 };
 
+exports.templates = {}
+  
 exports.init = function init(){
   return {
     string: exports.string,

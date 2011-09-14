@@ -782,7 +782,7 @@ exports.compile = function(str, options){
  */
 exports.compile_to_js = function(str, options){
   options = options || {}
-  var coffee = CoffeeScript || require('coffee-script');
+  var coffee = typeof(CoffeeScript) == 'undefined' ? require('coffee-script') : CoffeeScript;
   var fn = exports.compile(str, options).code
   fn = coffee.compile(fn, {bare:true, filename:options.filename})
   if (options.debug) {
@@ -2578,6 +2578,8 @@ exports.string = function string(html){
   return String(html);
 };
 
+exports.templates = {}
+  
 exports.init = function init(){
   return {
     string: exports.string,

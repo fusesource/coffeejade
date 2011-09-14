@@ -55,6 +55,17 @@ if (program.self) options.self = true;
 
 var files = program.args;
 
+var coffee_compile = function(source) {
+  if( !program.coffee ) {
+    var coffee = require('coffee-script');
+    source = coffee.compile(source, {bare:true})
+    if (options.debug) {
+      console.error('\nGenerated JavaScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
+    }
+  }
+  return source;
+}
+
 var amd_sources = {};
 // compile files
 if (files.length) {
@@ -80,13 +91,7 @@ if (files.length) {
       console.error('\nGenerated AMD CoffeeScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
     }
     
-    if( !program.coffee ) {
-      var coffee = require('coffee-script');
-      source = coffee.compile(source, {bare:true})
-      if (options.debug) {
-        console.error('\nGenerated AMD JavaScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
-      }
-    }
+    source = coffee_compile(coffee)
     
     fs.writeFile(program.amdout, source, function(err){
       if (err) throw err;
@@ -112,24 +117,27 @@ function renderFile(path) {
     var str = fs.readFileSync(path, 'utf8');
 
     options.filename = path
-    var result = null;
-    var target = null;
     
-    if( program.coffee || program.amdout ) {
-      result = jade.compile(str, options).code;
-      target = path.replace(re, '.coffee');
-    } else {
-      result = jade.compile_to_js(str, options);
-      target = path.replace(re, '.js');
-    }
-    
+    var source = jade.compile(str, options).code;
+
     if( !program.amdout ) {
-      fs.writeFile(target, result, function(err){
+      
+      buf = [];
+      // buf.push('jade = require("jade.js")');
+      buf.push("jade.templates['"+path+"'] = (");
+      buf.push(source.replace(/^/gm, "    "));
+      buf.push(")");
+      var source = buf.join("\n")
+      
+      source = coffee_compile(source);
+      var target = program.coffee ? path.replace(re, '.coffee') : path.replace(re, '.js');
+      
+      fs.writeFile(target, source, function(err){
         if (err) throw err;
         console.log(' \033[90m generated \033[36m%s\033[0m', target);
       });
     } else {
-      amd_sources[path] = result;
+      amd_sources[path] = source;
     }
     
   // Found directory
