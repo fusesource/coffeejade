@@ -7,11 +7,6 @@ var jade = require('./../lib/jade'),
     nodes = jade.nodes,
     Compiler = jade.Compiler;
 
-jade.renderFile(__dirname + '/nested-filters.jade', function(err, html){
-    if (err) throw err;
-    console.log(html);
-});
-
 // :javascripts
 
 jade.filters.javascripts = function(block, compiler){
@@ -71,3 +66,10 @@ StylesheetsVisitor.prototype.visitTag = function(node){
             parent.call(this, node);
     }
 };
+
+var locals={}
+var fs = require('fs');
+var filename = __filename.replace(/\.js$/, '.jade');
+var template = jade.template(fs.readFileSync(filename, 'UTF-8'), {filename:filename, debug:true});
+console.log(template(locals));
+

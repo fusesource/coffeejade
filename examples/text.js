@@ -3,8 +3,13 @@
  * Module dependencies.
  */
 
-var jade = require('./../lib/jade')
-  , str = require('fs').readFileSync(__dirname + '/text.jade', 'utf8')
-  , fn = jade.compile(str);
+var jade = require('./../lib/jade');
 
-console.log(fn({ name: 'tj', email: 'tj@vision-media.ca' }));
+var locals={ 
+  name: 'tj', 
+  email: 'tj@vision-media.ca' 
+};
+var fs = require('fs');
+var filename = __filename.replace(/\.js$/, '.jade');
+var template = jade.template(fs.readFileSync(filename, 'UTF-8'), {filename:filename, debug:true});
+console.log(template(locals));

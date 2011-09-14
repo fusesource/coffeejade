@@ -5,7 +5,8 @@
 
 var jade = require('./../lib/jade');
 
-jade.renderFile(__dirname + '/rss.jade', function(err, xml){
-  if (err) throw err;
-  console.log(xml);
-});
+var locals={}
+var fs = require('fs');
+var filename = __filename.replace(/\.js$/, '.jade');
+var template = jade.template(fs.readFileSync(filename, 'UTF-8'), {filename:filename, debug:true});
+console.log(template(locals));

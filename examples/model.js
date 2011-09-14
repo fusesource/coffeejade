@@ -8,23 +8,6 @@ var jade = require('./../lib/jade'),
     Compiler = jade.Compiler,
     nodes = jade.nodes;
 
-var options = {
-    locals: {
-        user: {
-            name: 'Tobi',
-            email: 'vision-media.ca',
-            summary: 'Tobi is a ferret, he is supes cool.',
-            errors: { email: 'Invalid email' },
-            new: false
-        }
-    }
-};
-
-jade.renderFile(__dirname + '/model.jade', options, function(err, html){
-    if (err) throw err;
-    console.log(html);
-});
-
 // First define a filter named "model",
 // which accepts a node (a Block node),
 // and the parent Compiler
@@ -122,3 +105,18 @@ Visitor.prototype.visitTag = function(node){
             parent.call(this, node);
     }
 };
+
+var locals={ 
+  user: {
+    name: 'Tobi',
+    email: 'vision-media.ca',
+    summary: 'Tobi is a ferret, he is supes cool.',
+    errors: { email: 'Invalid email' },
+    new: false
+  }
+};
+
+var fs = require('fs');
+var filename = __filename.replace(/\.js$/, '.jade');
+var template = jade.template(fs.readFileSync(filename, 'UTF-8'), {filename:filename, debug:true});
+console.log(template(locals));
