@@ -47,9 +47,10 @@
 
 ## Installation
 
-via npm:
+via git/npm:
 
-    npm install coffeejade
+    git clone https://github.com/fusesource/coffeejade
+    sudo npm install -g coffeejade
 
 ## Browser Support
 
