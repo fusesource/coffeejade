@@ -58,7 +58,14 @@ var files = program.args;
 var coffee_compile = function(source) {
   if( !program.coffee ) {
     var coffee = require('coffee-script');
-    source = coffee.compile(source, {bare:true})
+    try {
+      source = coffee.compile(source, {bare:true})
+    } catch(err) {
+      if (!options.debug) {
+        console.error('\nGenerated CoffeeScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
+      }
+      throw err;
+    }
     if (options.debug) {
       console.error('\nGenerated JavaScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
     }
@@ -132,10 +139,9 @@ function renderFile(path) {
       source = coffee_compile(source);
       var target = program.coffee ? path.replace(re, '.coffee') : path.replace(re, '.js');
       
-      fs.writeFile(target, source, function(err){
-        if (err) throw err;
-        console.log(' \033[90m generated \033[36m%s\033[0m', target);
-      });
+      fs.writeFileSync(target, source)
+      console.log(' \033[90m generated \033[36m%s\033[0m', target);
+      
     } else {
       amd_sources[path] = source;
     }
