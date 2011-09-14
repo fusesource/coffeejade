@@ -62,15 +62,19 @@ var coffee_compile = function(source) {
       source = coffee.compile(source, {bare:true})
     } catch(err) {
       if (!options.debug) {
-        console.error('\nGenerated CoffeeScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
+        console.error('\nGenerated CoffeeScript:\n\n\033[90m%s\033[0m', indent(source, '  '));
       }
       throw err;
     }
     if (options.debug) {
-      console.error('\nGenerated JavaScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
+      console.error('\nGenerated JavaScript:\n\n\033[90m%s\033[0m', indent(source, '  '));
     }
   }
   return source;
+}
+
+var indent = function(source, padding) {
+  return padding+source.split("\n").join("\n"+padding)
 }
 
 var amd_sources = {};
@@ -89,13 +93,13 @@ if (files.length) {
     for(key in amd_sources) {
       var source = amd_sources[key];
       buf.push("  templates['"+key+"'] = (")
-      buf.push(source.replace(/^/gm, "    "))
+      buf.push(indent(source, '    '))
       buf.push("  )")
     }
     buf.push("  templates")
     var source = buf.join("\n")
     if (options.debug) {
-      console.error('\nGenerated AMD CoffeeScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
+      console.error('\nGenerated AMD CoffeeScript:\n\n\033[90m%s\033[0m', indent(source, '  '));
     }
     
     source = coffee_compile(source)
@@ -131,9 +135,8 @@ function renderFile(path) {
       
       buf = [];
       // buf.push('jade = require("jade.js")');
-      buf.push("jade.templates['"+path+"'] = (");
-      buf.push(source.replace(/^/gm, "    "));
-      buf.push(")");
+      buf.push("jade.templates['"+path+"'] =");
+      buf.push(indent(source, '  '));
       var source = buf.join("\n")
       
       source = coffee_compile(source);
