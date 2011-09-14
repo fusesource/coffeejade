@@ -1,11 +1,11 @@
 {
-  "name": "coffee-jade",
+  "name": "coffeejade",
   "description": "The CoffeeScript Jade template engine",
   "version": "1.0.0",
   "author": "FuseSource <http://fusesource.com>",
   "repository": "git://github.com/chirino/jade.git",
   "main": "./index.js",
-  "bin": { "coffee-jade": "./bin/coffee-jade" },
+  "bin": { "coffeejade": "./bin/coffeejade" },
   "dependencies": {
     "commander": "0.1.0",
     "coffee-script": ">= 1.1.2",

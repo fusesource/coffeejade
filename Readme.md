@@ -45,17 +45,17 @@
 
 via npm:
 
-    npm install coffee-jade
+    npm install coffeejade
 
 ## Browser Support
 
  To compile jade to a single file compatible for client-side use simply execute:
  
-    $ make coffee-jade.js
+    $ make coffeejade.js
 
  Alternatively, if uglifyjs is installed via npm (`npm install uglify-js`) you may execute the following which will create both files. However each release builds these for you.
  
-    $ make coffee-jade.min.js
+    $ make coffeejade.min.js
 
   By default CoffeeScript Jade instruments templates with line number statements for debugging purposes. When used in a browser it's useful to minimize this boiler plate, you can do so by passing the option `{ compileDebug: false }`. The following template
   
