@@ -1133,6 +1133,8 @@ Lexer.prototype = {
         // TODO: remove when people fix ":"
         if (colons && ':' == c) c = '=';
         switch (c) {
+          case ' ':
+          case '\t':
           case ',':
           case '\n':
             switch (state()) {
