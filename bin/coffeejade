@@ -34,14 +34,11 @@ program
 program.on('--help', function(){
   console.log('  Examples:');
   console.log('');
-  console.log('    # translate jade the templates dir');
-  console.log('    $ jade templates');
+  console.log('    # translate all the jade files the templates dir');
+  console.log('    $ coffeejade templates');
   console.log('');
-  console.log('    # create {foo,bar}.html');
-  console.log('    $ jade {foo,bar}.jade');
-  console.log('');
-  console.log('    # foo, bar dirs rendering to /tmp');
-  console.log('    $ jade foo bar --out /tmp ');
+  console.log('    # Like the the previous example, but generate one javascript file.');
+  console.log('    $ coffeejade --amdout templates.js templates');
   console.log('');
 });
 
