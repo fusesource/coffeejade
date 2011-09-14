@@ -5,18 +5,16 @@
 
 var jade = require('./../lib/jade');
 
-var options = {
-    locals: {
-        user: {
-            name: 'TJ',
-            email: 'tj@vision-media.ca',
-            city: 'Victoria',
-            province: 'BC'
-        }
-    }
+var locals = {
+  user: {
+    name: 'TJ',
+    email: 'tj@vision-media.ca',
+    city: 'Victoria',
+    province: 'BC'
+  }
 };
 
-jade.renderFile(__dirname + '/form.jade', options, function(err, html){
-    if (err) throw err;
-    console.log(html);
-});
+var fs = require('fs');
+var filename = __filename.replace(/\.js$/, '.jade');
+var template = jade.template(fs.readFileSync(filename, 'UTF-8'), {filename:filename, debug:true});
+console.log(template(locals));

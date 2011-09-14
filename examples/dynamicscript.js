@@ -5,16 +5,14 @@
 
 var jade = require('./../lib/jade');
 
-var options = {
-    locals: {
-        users: {
-            tj: { age: 23, email: 'tj@vision-media.ca', isA: 'human' },
-            tobi: { age: 1, email: 'tobi@is-amazing.com', isA: 'ferret' }
-        }
-    }
+var locals = {
+  users: {
+    tj: { age: 23, email: 'tj@vision-media.ca', isA: 'human' },
+    tobi: { age: 1, email: 'tobi@is-amazing.com', isA: 'ferret' }
+  }
 };
 
-jade.renderFile(__dirname + '/dynamicscript.jade', options, function(err, html){
-    if (err) throw err;
-    console.log(html);
-});
+var fs = require('fs');
+var filename = __filename.replace(/\.js$/, '.jade');
+var template = jade.template(fs.readFileSync(filename, 'UTF-8'), {filename:filename, debug:true});
+console.log(template(locals));

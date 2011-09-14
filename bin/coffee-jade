@@ -23,13 +23,12 @@ var options = {};
 program
   .version(jade.version)
   .usage('[options] file.jade target.')
-  .option('-c, --coffee',   'Compile to CoffeeScript instead of JavaScript')
-  .option('-b, --bare', 'compiles the CoffeeScript without the top-level function wrapper')
-  .option('-p, --pretty', 'Pretty print the HTML')
+  .option('-c, --coffee',         'Compile to CoffeeScript instead of JavaScript')
+  .option('-p, --pretty',         'Pretty print the HTML')
   .option('-d, --doctype <type>', 'Sets the doctype in the generated HTML')
-  .option('-s, --self', 'Use a `self` namespace to hold the locals')
-  .option('-d, --debug', 'Enable debug mode')
-  .option('-a, --amdout <file>', 'Wrap all the templates in an Asynchronous Module Definition (AMD)')
+  .option('-s, --self',           'Use a `self` namespace to hold the locals')
+  .option('-d, --debug',          'Enable debug mode')
+  .option('-a, --amdout <file>',  'Wrap all the templates in an Asynchronous Module Definition (AMD)')
   .option('-r, --amdrequire <require>', 'Add a require to the AMD')
 
 program.on('--help', function(){
@@ -86,7 +85,7 @@ if (files.length) {
     
     if( !program.coffee ) {
       var coffee = require('coffee-script');
-      source = coffee.compile(source, {bare:options.bare})
+      source = coffee.compile(source, {bare:true})
       if (options.debug) {
         console.error('\nGenerated AMD JavaScript:\n\n\033[90m%s\033[0m', source.replace(/^/gm, '  '));
       }

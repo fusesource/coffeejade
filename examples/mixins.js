@@ -10,9 +10,9 @@ var user = {
   , pets: ['tobi', 'loki', 'jane', 'manny']
 };
 
-var options = { locals: { user: user }};
+var locals={ user: user }
 
-jade.renderFile(__dirname + '/mixins.jade', options, function(err, html){
-  if (err) throw err;
-  console.log(html);
-});
+var fs = require('fs');
+var filename = __filename.replace(/\.js$/, '.jade');
+var template = jade.template(fs.readFileSync(filename, 'UTF-8'), {filename:filename, debug:true});
+console.log(template(locals));

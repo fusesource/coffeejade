@@ -4,8 +4,9 @@
  */
 
 var jade = require('./../lib/jade');
+var locals={}
 
-jade.renderFile(__dirname + '/layout.jade', function(err, html){
-    if (err) throw err;
-    console.log(html);
-});
+var fs = require('fs');
+var filename = __filename.replace(/\.js$/, '.jade');
+var template = jade.template(fs.readFileSync(filename, 'UTF-8'), {filename:filename, debug:true});
+console.log(template(locals));

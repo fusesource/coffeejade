@@ -8,18 +8,6 @@ var jade = require('./../lib/jade'),
     Compiler = jade.Compiler,
     nodes = jade.nodes;
 
-var options = {
-    compiler: CSRF
-  , locals: {
-    csrf: 'WAHOOOOOO'
-  }
-};
-
-jade.renderFile(__dirname + '/csrf.jade', options, function(err, html){
-    if (err) throw err;
-    console.log(html);
-});
-
 function CSRF(node, options) {
   Compiler.call(this, node, options);
 }
@@ -40,3 +28,13 @@ CSRF.prototype.visitTag = function(node){
   }
   parent.call(this, node);
 };
+
+var fs = require('fs');
+var filename = __filename.replace(/\.js$/, '.jade');
+var template = jade.template(fs.readFileSync(filename, 'UTF-8'), {filename:filename, debug:true, compiler: CSRF});
+
+console.log(template({
+  csrf: 'WAHOOOOOO'
+}));
+
+
