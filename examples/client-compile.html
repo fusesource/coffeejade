@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Fabric Console</title>
+    <link rel="stylesheet" type="text/css" href="styles/main.css"></link>
+    <script src="../support/jquery.js"></script>
+    <script src="../coffeejade.js"></script>
+    <script src="../support/coffee-script.js"></script>
+    
+    <script type="text/coffeescript"> 
+    $ ->
+      jade = require("jade.js")
+      template = jade.template($("#example").html())
+      $("#example").remove();
+      $("body").html(template({}))
+      
+    </script>
+<script type="text/jade" id="example">
+h1 Hello World
+p
+  | This is 
+  | A test
+</script>
+
+  </head>
+  <body>
+  </body>
+</html>
